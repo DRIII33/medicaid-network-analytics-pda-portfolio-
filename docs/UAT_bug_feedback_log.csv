@@ -1,0 +1,5 @@
+Timestamp,Tester Name,Scenario #,Description/Feedback,Steps to Reproduce,Severity (Low/Med/High),Status (Open/Closed/Deferred),Assigned To,Resolution/Notes
+2026-04-20,John Smith,1,Network Adequacy KPI does not update when county filter is changed,Select different county then check KPI value,Medium,Open,Data Team,
+2026-04-20,Jane Lee,4,Provider Density visual does not update when provider type is filtered,Change provider type to Specialist,Low,Closed,Dev Team,"Visual updated after refresh"
+2026-04-20,A. Garcia,6,Duplicate Member ID number appears higher than manual check,Compare dashboard score with SQL export,High,Open,DBA,
+2026-04-20,E. Morales,8,On mobile device, some table columns are truncated at smaller widths,Open dashboard on phone,Low,Deferred,UI/UX,
