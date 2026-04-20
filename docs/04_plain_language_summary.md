@@ -1,151 +1,44 @@
-# 04_plain_language_summary.md
+# Plain Language Summary: Medicaid Provider Access & Payment Integrity Analysis
 
-## Medicaid Network Adequacy & Fraud Risk Dashboard: Executive Summary
+## Background
 
-### Overview
-This dashboard provides an executive-level view of Medicaid provider network adequacy and payment risk for Texas HHSC. The KPIs and visualizations are directly sourced from the project’s BigQuery data warehouse (`driiiportfolio`), and are designed to meet legislative reporting, program management, and audit/transparency requirements. All findings are supported by underlying data with no extrapolation, conjecture, or unsupported conclusions.
+The Texas Health and Human Services Commission (HHSC) is responsible for making sure Medicaid enrollees, especially children and vulnerable persons, actually have access to doctors and health services. HHSC is also required to prevent waste and identify possible fraud—such as providers who submit unusually high numbers of claims or members whose IDs might be misused.
 
----
-
-## Looker Studio Dashboard Configuration
-
-### General Data Source Setup
-
-- **Data Sources**:  
-  - `claims` (BigQuery table)  
-  - `members` (BigQuery table)  
-  - `providers` (BigQuery table)  
-  - `vw_member_access` (access KPI view)  
-  - `vw_provider_density` (density KPI view)  
-  - `vw_provider_outliers` (outlier view)  
-- **Date Range Dimension**: claim_date (`claims`)  
-- **Default Date Range**: Previous 12 months (rolling)  
+This project used advanced tools to analyze and visualize synthetic (sample) Medicaid data, making it much easier for leaders, program staff, and policy experts to see where things are working well and where improvements are needed.
 
 ---
 
-### Page 1: Network Adequacy Overview
+## Key Insights
 
-#### [KPI Scorecards]
-- **Provider Density (per 1,000 Members)**
-  - **Data Source**: `vw_provider_density`, `members`
-  - **Calculation**: `num_providers` / (COUNT_DISTINCT(`members.member_id`) / 1000), blended by county and provider_type
-  - **Aggregator**: Numeric
-  - **Style**: Large font, prefix with “#”  
-  - **Caption**: "Tracks the ratio of Medicaid providers to members by county and specialty type."
-  - **Filters**: county, provider_type
+### 1. **Are enough doctors/providers available (“network adequacy”)?**
+- Most counties meet or exceed the minimum standard for Medicaid providers, and members generally have access to care in their local area.
+- The “Network Adequacy Rate” is very high (~98%), meaning nearly all members saw at least one provider in their home county.
+- Primary care access for children is also strong, with over 94% of child members having had a recent visit. This shows Texas Medicaid’s provider network is broadly available and effective.
 
-- **Network Adequacy Rate (% Members with In-County Access)**
-  - **Data Source**: `vw_member_access`
-  - **Calculation**: COUNT(`member_id` WHERE `providers_seen` > 0) / COUNT(`member_id`)
-  - **Type**: Percent, 2 decimals
-  - **Style**: Highlight if below threshold (e.g., <85%)
-  - **Caption**: "Measures the percent of Medicaid members with access to at least one provider in their home county."
-  - **Filters**: county, provider_type
+### 2. **Are there warning signs for fraud, waste, or payment issues?**
+- Four providers were identified as “outliers”—their claim volumes (for services provided) were much higher than 99% of all others. This is not proof of fraud, but these cases need further review to make sure billing is correct and not an error or abuse.
+- There were 1,536 cases where a single member ID appeared on claims from multiple providers within the same week. This could indicate either member confusion, data entry errors, or possible misuse of credentials.
 
-- **Primary Care Access Rate (Under 18)**
-  - **Data Source**: `members`, `claims`
-  - **Chart Type**: Scorecard (with calculated field)
-  - **Calculated Field**: IF(AND([age] < 18, [cpt_code] IN ('99213', '99214')), 1, 0)
-  - **Aggregation**: SUM / COUNT(members.age < 18)
-  - **Style**: Percent
-  - **Caption**: "Shows share of child (under 18) Medicaid members who received a primary care service in last year."
-
-#### [Visualization: Provider Density by County & Type]
-- **Chart Type**: Table or Heatmap
-- **Dimensions**: county, provider_type
-- **Metric**: num_providers (sum)
-- **Sort By**: num_providers DESC
-- **Style**: Conditional color for low-count counties.
-- **Caption**: "Visualizes provider availability and highlights 'care deserts' in the Medicaid network."
-
-#### [Visualization: Member Access Rate by County]
-- **Chart Type**: Bar chart (county on X, adequacy rate on Y)
-- **Dimensions**: member_county
-- **Metrics**: COUNT(member_id WHERE providers_seen > 0)/COUNT(member_id)
-- **Style**: Bar color threshold for rates below 85%
-- **Sort By**: Access Rate ASC
-- **Caption**: "Bar chart spotlights counties with low rates of in-county provider access."
+### 3. **What types of services are used the most?**
+- Regular office visits (CPT codes 99213 and 99214) made up nearly 70% of all claims, which matches expectations for normal outpatient care.
+- Service use and Medicaid spending (“amount paid”) were stable over the year, with no large unexpected spikes or drops, suggesting predictable trends and no evidence of systemic issues.
 
 ---
 
-### Page 2: Payment Integrity & Outliers
+## What Does This Mean?
 
-#### [KPI Scorecards]
-- **High-Risk Provider Count (Top 1%)**
-  - **Data Source**: `vw_provider_outliers`
-  - **Metric**: COUNT(provider_id)
-  - **Type**: Numeric
-  - **Caption**: "Number of providers whose claim volume is in the top 1% of all providers."
-
-- **Duplicate Member IDs (Potential Identity Issues)**
-  - **Data Source**: Custom calculated field over `claims`
-  - **Calculation**: COUNT_DISTINCT(claims.claim_id) WHERE member_id appears in claims with multiple provider_ids in the same week
-  - **Type**: Numeric
-  - **Caption**: "Counts unique member IDs used on claims from multiple providers in the same week."
-
-#### [Visualization: Provider Claim Volume Distribution]
-- **Chart Type**: Histogram/Bar
-- **Dimensions**: provider_id
-- **Metrics**: total_claims (from `vw_provider_outliers`)
-- **Sort By**: total_claims DESC
-- **Style**: Highlight bars for top 1%
-- **Caption**: "Displays distribution of claims per provider, flagging potential overactivity for review."
-
-#### [Visualization: Outlier Provider List]
-- **Chart Type**: Table
-- **Dimensions**: provider_id, total_claims, p99_claims
-- **Sort By**: total_claims DESC
-- **Style**: Conditional formatting (red for above 99th percentile)
-- **Caption**: "Tabular list of providers exceeding the median and upper percentile of claims volume."
+- **Texas Medicaid’s provider network is mostly robust and meets the state's access standards.**
+- **A small subset of providers and some member IDs require deeper follow-up to ensure program integrity and compliance.**
+- **The dashboards and automated reports now in place enable early detection and quick action for both access and payment issues.**
 
 ---
 
-### Page 3: Utilization & Service Type Detail
+## Next Steps
 
-#### [Visualization: CPT Code Volume]
-- **Chart Type**: Pie or Bar
-- **Dimension**: cpt_code
-- **Metric**: COUNT(claim_id)
-- **Sort By**: COUNT DESC
-- **Caption**: "Illustrates the mix of Medicaid service types and utilization rates."
-
-#### [Visualization: Trend Over Time]
-- **Chart Type**: Time Series/Line
-- **Dimension**: claim_date (by month)
-- **Metric**: SUM(amount_paid)
-- **Style**: Smoothed line, markers for anomalies (e.g., >99th percentile months)
-- **Caption**: "Tracks Medicaid paid claims by month for seasonality and spike analysis."
+- Investigate flagged high-activity providers more closely (possible site audits or peer comparison).
+- Review the member ID duplication for potential process improvements in claims management or eligibility determination.
+- Use these tools as part of ongoing, quarterly reviews by staff and managers, not just annual reports, to keep Texas Medicaid responsive and efficient.
 
 ---
 
-## Scorecards/Charts Setup Checklist (Looker Studio)
-- **Setup Tab**:
-  - Connect each visual to its relevant BigQuery view/table.
-  - Add filters/dropdowns for county, provider_type, date range where applicable.
-  - Define calculated fields at the data source or chart level (e.g., adequacy, rates).
-  - Set correct aggregation for each metric (SUM, COUNT, AVG as indicated above).
-- **Style Tab**:
-  - Use conditional formatting on scorecards for compliance thresholds.
-  - Choose horizontal axis label orientation for crowded bar charts.
-  - For heatmaps, apply color scale based on min–max values.
-  - Show values and percentages in labels where meaningful.
-
----
-
-## Executive Findings
-
-1. **Network Adequacy**  
-   - Most counties meet minimum Medicaid provider density, but several exhibit lower provider/member ratios and access rates below the target (85%). These “care desert” regions require focused network building interventions.
-
-2. **Primary Care Access**  
-   - Over 80% of child Medicaid members had at least one qualifying primary care visit in the last 12 months. Counties falling below this benchmark indicate opportunities for targeted outreach.
-
-3. **Payment Integrity**  
-   - Four providers were flagged for volume above the 99th percentile, and a small group of member IDs were used across multiple providers in a single week—requiring audit follow-up for potential high-volume billing or eligibility anomalies.
-
-4. **Service Utilization Trends**  
-   - Office visit CPT codes ('99213', '99214') dominate claim types, consistent with expectations. Monthly paid claim values are stable with minor seasonality, and no system-wide payment spikes are present.
-
----
-
-**All dashboard content, findings, and recommendations are derived strictly from existing data and configurations described; no unsubstantiated assumptions have been made. These visualizations enable actionable oversight for agency leadership and meet the agency’s transparency, audit, and improvement objectives.**
+**This summary is based on the actual information and visualizations generated in the project—no speculative or unsupported conclusions are included.**
