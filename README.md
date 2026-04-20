@@ -1,8 +1,11 @@
 # Medicaid Network & Payment Integrity Data Analytics Portfolio Project
 
 **Author:** Daniel Rodriguez III - Performance Data Analyst
+
 **Portfolio Project**
+
 **Date:** 20 April 2026
+
 ---
 ## Overview
 
