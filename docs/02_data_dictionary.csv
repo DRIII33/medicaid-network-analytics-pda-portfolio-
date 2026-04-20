@@ -1,0 +1,23 @@
+Field Name,Table,Description,Type,Example,Data Source,Notes
+provider_id,providers,Unique provider identifier,STRING,PRV0001,Generated in data_gen_provider_member.py,"Joins to claims.provider_id, unique"
+provider_name,providers,Provider company name,STRING,"Wellness Pediatrics, PLLC",Faker,Rendered for realism
+provider_type,providers,Provider classification,STRING,Primary Care,[Primary Care,Specialist,Pediatrics,...],Maps to Medicaid contract types
+county,providers,Provider county of practice,STRING,Travis,[Travis,Williamson,...],Used for network adequacy calculations
+address,providers,Practice address,STRING,"123 Main St, Austin, TX, 78701",Faker,"Optional, geo-coding out of scope"
+npi,providers,National Provider Identifier,STRING,1234567891,Faker.unique.random_number,Must be unique
+
+member_id,members,Unique Medicaid member identifier,STRING,MEM00001,Generated in data_gen_provider_member.py,Joins to claims.member_id
+dob,members,Date of birth,DATE,2005-04-12,Faker,Used for pediatric eligibility etc.
+age,members,Calculated age,INT64,17,Generated for ease,Back-calculated from dob as needed
+gender,members,Member gender,STRING,F,[M,F],Directly from faker
+county,members,Home county,STRING,Travis,Synth-matched to population,Used for network gap logic
+address,members,Home address,STRING,"456 Oak Ave, Austin, TX, 78702",Faker,
+,,
+claim_id,claims,Unique claim identifier,STRING,CLM000001,Generated,Joins to member_id/provider_id
+member_id,claims,Member associated to claim,STRING,MEM00001,Joins to members.member_id,
+provider_id,claims,Provider associated to claim,STRING,PRV0001,Joins to providers.provider_id,
+provider_type,claims,Denormalized provider type,STRING,Primary Care,Ref from provider_type,
+claim_date,claims,Date of service,DATE,2024-10-16,Faker,
+amount_paid,claims,Actual $ paid by Medicaid,FLOAT64,140.50,Uniform between $50-400,Subject to analysis/outlier logic
+cpt_code,claims,Procedure/billing code,STRING,99213,["99213", "99214", "97802", "90791", ...],"Used for service-line filtering, e.g., nutrition, mental health"
+status,claims,Claim adjudication status,STRING,Paid,[Paid,Denied,Pending],For recency, outlier and payment metrics
